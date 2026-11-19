@@ -1,0 +1,172 @@
+{% extends "base.html" %}
+
+{% block title %}Settings - System Configuration & Environment{% endblock %}
+{% block page_title %}System Settings & Diagnostics{% endblock %}
+{% block page_subtitle %}Runtime Engine Parameters, Interface Selection & Host Environment Telemetry{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+    <!-- Configuration Form -->
+    <div class="col-lg-7">
+        <div class="card-dark">
+            <div class="card-header-dark">
+                <h5>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-info"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+                    Operational Configuration
+                </h5>
+            </div>
+            <div class="card-body-dark">
+                <form id="settings-form">
+                    <div class="mb-3">
+                        <label class="form-label text-muted" style="font-size: 0.8rem;">Monitoring Engine Mode</label>
+                        <select class="form-select form-select-dark" id="set-monitoring-mode">
+                            <option value="SIMULATION">Simulation Mode (Cross-Subnet Multi-Tier Traffic)</option>
+                            <option value="LIVE">Live Capture Mode (Scapy Sniffer)</option>
+                        </select>
+                        <div class="form-text text-muted" style="font-size: 0.75rem;">
+                            Simulation mode safely runs on all platforms without requiring administrative privileges or raw packet drivers.
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label text-muted" style="font-size: 0.8rem;">Packet Sniffing Interface</label>
+                        <input type="text" class="form-control form-control-dark" id="set-interface" value="eth0">
+                        <div class="form-text text-muted" style="font-size: 0.75rem;">
+                            Interface used when Live Scapy capture is active (e.g. eth0, wlan0, Wi-Fi).
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label text-muted" style="font-size: 0.8rem;">Simulation Generation Rate (Packets/Sec)</label>
+                        <input type="number" class="form-control form-control-dark" id="set-rate" min="1" max="50" value="10">
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label text-muted" style="font-size: 0.8rem;">Total Network Bandwidth Capacity (Mbps)</label>
+                        <input type="number" class="form-control form-control-dark" id="set-bandwidth" min="10" max="1000" value="100">
+                    </div>
+
+                    <button type="button" class="btn btn-cyan btn-sm px-4" id="btn-save-settings">
+                        Save System Settings
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Host Environment Telemetry & Reset Card -->
+    <div class="col-lg-5">
+        <div class="card-dark mb-4">
+            <div class="card-header-dark">
+                <h5>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-cyan"><rect x="2" y="2" width="20" height="8" rx="2" ry="2"></rect><rect x="2" y="14" width="20" height="8" rx="2" ry="2"></rect><line x1="6" y1="6" x2="6.01" y2="6"></line><line x1="6" y1="18" x2="6.01" y2="18"></line></svg>
+                    Host Diagnostics & Capabilities
+                </h5>
+            </div>
+            <div class="card-body-dark">
+                <div class="d-flex justify-content-between py-2 border-bottom border-secondary" style="font-size: 0.82rem;">
+                    <span class="text-muted">Host Operating System:</span>
+                    <strong class="text-white" id="diag-os">Windows</strong>
+                </div>
+                <div class="d-flex justify-content-between py-2 border-bottom border-secondary" style="font-size: 0.82rem;">
+                    <span class="text-muted">Python Version:</span>
+                    <strong class="text-white">Python 3.10+</strong>
+                </div>
+                <div class="d-flex justify-content-between py-2 border-bottom border-secondary" style="font-size: 0.82rem;">
+                    <span class="text-muted">Scapy Engine:</span>
+                    <strong class="text-success" id="diag-scapy">Installed</strong>
+                </div>
+                <div class="d-flex justify-content-between py-2 border-bottom border-secondary" style="font-size: 0.82rem;">
+                    <span class="text-muted">Linux tc Kernel Control:</span>
+                    <span class="badge badge-sim" id="diag-tc">Simulation Ready</span>
+                </div>
+                <div class="d-flex justify-content-between py-2 border-bottom border-secondary" style="font-size: 0.82rem;">
+                    <span class="text-muted">Database Engine:</span>
+                    <strong class="text-white">SQLite 3 (Local)</strong>
+                </div>
+                <div class="d-flex justify-content-between py-2" style="font-size: 0.82rem;">
+                    <span class="text-muted">Virtual Subnets Active:</span>
+                    <strong class="text-info">3 Subnets (A, B, C)</strong>
+                </div>
+            </div>
+        </div>
+
+        <!-- Database Maintenance Card -->
+        <div class="card-dark border-danger">
+            <div class="card-header-dark border-danger">
+                <h5 class="text-danger">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="me-1"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                    Database Maintenance & Factory Reset
+                </h5>
+            </div>
+            <div class="card-body-dark">
+                <p class="text-muted" style="font-size: 0.8rem;">
+                    Resets SQLite tables, restores default subnets, devices, and rules.
+                </p>
+                <button type="button" class="btn btn-outline-danger btn-sm w-100" id="btn-reset-db">
+                    Reset Database to Factory Defaults
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', async () => {
+        // Load settings
+        try {
+            const res = await fetch('/api/settings');
+            const data = await res.json();
+            if (data.success && data.settings) {
+                const s = data.settings;
+                if (s.monitoring_mode) document.getElementById('set-monitoring-mode').value = s.monitoring_mode;
+                if (s.capture_interface) document.getElementById('set-interface').value = s.capture_interface;
+                if (s.packet_generation_rate) document.getElementById('set-rate').value = s.packet_generation_rate;
+                if (s.total_bandwidth_mbps) document.getElementById('set-bandwidth').value = s.total_bandwidth_mbps;
+            }
+        } catch (e) {
+            console.error(e);
+        }
+
+        // Save settings listener
+        document.getElementById('btn-save-settings')?.addEventListener('click', async () => {
+            const payload = {
+                monitoring_mode: document.getElementById('set-monitoring-mode').value,
+                capture_interface: document.getElementById('set-interface').value,
+                packet_generation_rate: document.getElementById('set-rate').value,
+                total_bandwidth_mbps: document.getElementById('set-bandwidth').value
+            };
+            try {
+                const res = await fetch('/api/settings', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(payload)
+                });
+                const data = await res.json();
+                if (data.success) {
+                    showToast('Settings saved successfully.', 'success');
+                }
+            } catch (err) {
+                showToast('Failed to save settings: ' + err, 'error');
+            }
+        });
+
+        // Reset DB listener
+        document.getElementById('btn-reset-db')?.addEventListener('click', async () => {
+            if (!confirm('Are you sure you want to re-initialize the database to default seed data?')) return;
+            try {
+                const res = await fetch('/api/settings/reset', { method: 'POST' });
+                const data = await res.json();
+                if (data.success) {
+                    showToast('Database reset to defaults.', 'success');
+                    setTimeout(() => location.reload(), 1000);
+                }
+            } catch (err) {
+                showToast('Reset failed: ' + err, 'error');
+            }
+        });
+    });
+</script>
+{% endblock %}

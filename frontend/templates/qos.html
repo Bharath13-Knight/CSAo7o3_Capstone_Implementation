@@ -1,0 +1,208 @@
+{% extends "base.html" %}
+
+{% block title %}QoS Management - Bandwidth & Priority Queuing{% endblock %}
+{% block page_title %}QoS Policy & Optimization Management{% endblock %}
+{% block page_subtitle %}Bandwidth Allocation, Strict Priority Queuing, Linux tc Command Generator & Queue Telemetry{% endblock %}
+
+{% block content %}
+<!-- QoS Status & Operating Mode Banner -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card-dark p-3" style="border-left: 4px solid var(--accent-purple);">
+            <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
+                <div class="d-flex align-items-center gap-3">
+                    <!-- Global QoS Toggle Switch -->
+                    <div class="form-check form-switch fs-5 mb-0">
+                        <input class="form-check-input" type="checkbox" id="switch-enable-qos" checked>
+                    </div>
+                    <div>
+                        <h6 class="mb-0 fw-bold" id="qos-status-heading">Quality of Service: ENABLED</h6>
+                        <span class="text-muted" style="font-size: 0.8rem;" id="qos-status-subtext">
+                            Active policies enforce strict priority queuing and Hierarchical Token Bucket (HTB) bandwidth rate limits.
+                        </span>
+                    </div>
+                </div>
+                <div>
+                    <!-- Enforcement Badge (Simulation vs Linux Kernel) -->
+                    <span class="badge badge-sim px-3 py-2" id="qos-enforcement-badge" style="font-size: 0.82rem;">
+                        SIMULATION ENGINE (Linux tc Script Ready)
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Interactive Bandwidth Allocation Configuration Card -->
+<div class="row g-3 mb-4">
+    <div class="col-lg-6">
+        <div class="card-dark h-100">
+            <div class="card-header-dark">
+                <h5>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-cyan"><line x1="4" y1="21" x2="4" y2="14"></line><line x1="4" y1="10" x2="4" y2="3"></line><line x1="12" y1="21" x2="12" y2="12"></line><line x1="12" y1="8" x2="12" y2="3"></line><line x1="20" y1="21" x2="20" y2="16"></line><line x1="20" y1="12" x2="20" y2="3"></line></svg>
+                    Bandwidth Partitioning Controls
+                </h5>
+                <span class="text-muted" style="font-size: 0.78rem;">Must sum to 100%</span>
+            </div>
+            <div class="card-body-dark">
+                <form id="form-qos-policies">
+                    <!-- Total Link Capacity -->
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between">
+                            <label class="form-label text-muted" style="font-size: 0.8rem;">Total Interface Bandwidth</label>
+                            <span class="text-white fw-bold"><span id="lbl-total-bw">100</span> Mbps</span>
+                        </div>
+                        <input type="range" class="form-range" id="slider-total-bw" min="10" max="1000" step="10" value="100">
+                    </div>
+
+                    <!-- High Priority Bandwidth Slider -->
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between">
+                            <label class="form-label text-danger" style="font-size: 0.8rem;">High Priority (VoIP & Video)</label>
+                            <span class="text-danger fw-bold"><span id="lbl-high-pct">55</span>% (<span id="lbl-high-mbps">55.0</span> Mbps)</span>
+                        </div>
+                        <input type="range" class="form-range" id="slider-high-pct" min="10" max="80" value="55">
+                    </div>
+
+                    <!-- Medium Priority Bandwidth Slider -->
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between">
+                            <label class="form-label text-warning" style="font-size: 0.8rem;">Medium Priority (Web & DNS)</label>
+                            <span class="text-warning fw-bold"><span id="lbl-med-pct">30</span>% (<span id="lbl-med-mbps">30.0</span> Mbps)</span>
+                        </div>
+                        <input type="range" class="form-range" id="slider-med-pct" min="10" max="70" value="30">
+                    </div>
+
+                    <!-- Low Priority Bandwidth Slider -->
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between">
+                            <label class="form-label text-success" style="font-size: 0.8rem;">Low Priority (FTP & Bulk Transfers)</label>
+                            <span class="text-success fw-bold"><span id="lbl-low-pct">15</span>% (<span id="lbl-low-mbps">15.0</span> Mbps)</span>
+                        </div>
+                        <input type="range" class="form-range" id="slider-low-pct" min="5" max="50" value="15">
+                    </div>
+
+                    <!-- Total percentage validation indicator -->
+                    <div class="d-flex justify-content-between align-items-center mb-3 p-2 rounded bg-dark border border-secondary" style="font-size: 0.82rem;">
+                        <span>Total Allocation Sum:</span>
+                        <strong id="lbl-allocation-sum" class="text-success">100%</strong>
+                    </div>
+
+                    <div class="d-flex gap-2">
+                        <button type="button" class="btn btn-cyan btn-sm flex-grow-1" id="btn-apply-qos">
+                            Apply & Enforce QoS Policy
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary btn-sm" id="btn-reset-qos-defaults">
+                            Reset Defaults
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Live Queue Simulation Telemetry -->
+    <div class="col-lg-6">
+        <div class="card-dark h-100">
+            <div class="card-header-dark">
+                <h5>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-success"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
+                    Live Priority Queuing Dynamics & Buffer Status
+                </h5>
+                <span class="text-muted" style="font-size: 0.78rem;">Queue Telemetry</span>
+            </div>
+            <div class="card-body-dark">
+                <!-- Queue 1: High -->
+                <div class="p-3 mb-2 rounded bg-dark border border-danger">
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                        <strong class="text-danger">Queue 1: High Priority (pfifo limit 100)</strong>
+                        <span class="badge badge-high" id="q1-status">PROTECTED</span>
+                    </div>
+                    <div class="row g-2 text-center" style="font-size: 0.78rem;">
+                        <div class="col-4">
+                            <div class="text-muted">Simulated Latency</div>
+                            <div class="fw-bold text-white" id="q1-latency">12.4 ms</div>
+                        </div>
+                        <div class="col-4">
+                            <div class="text-muted">Jitter</div>
+                            <div class="fw-bold text-white" id="q1-jitter">1.8 ms</div>
+                        </div>
+                        <div class="col-4">
+                            <div class="text-muted">Drop Rate</div>
+                            <div class="fw-bold text-success" id="q1-drop">0.0%</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Queue 2: Medium -->
+                <div class="p-3 mb-2 rounded bg-dark border border-warning">
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                        <strong class="text-warning">Queue 2: Medium Priority (Fair Queue)</strong>
+                        <span class="badge badge-med" id="q2-status">NORMAL</span>
+                    </div>
+                    <div class="row g-2 text-center" style="font-size: 0.78rem;">
+                        <div class="col-4">
+                            <div class="text-muted">Simulated Latency</div>
+                            <div class="fw-bold text-white" id="q2-latency">26.5 ms</div>
+                        </div>
+                        <div class="col-4">
+                            <div class="text-muted">Jitter</div>
+                            <div class="fw-bold text-white" id="q2-jitter">4.2 ms</div>
+                        </div>
+                        <div class="col-4">
+                            <div class="text-muted">Drop Rate</div>
+                            <div class="fw-bold text-white" id="q2-drop">0.2%</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Queue 3: Low -->
+                <div class="p-3 mb-2 rounded bg-dark border border-success">
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                        <strong class="text-success">Queue 3: Low Priority (SFQ Rate-Limited)</strong>
+                        <span class="badge badge-low" id="q3-status">THROTTLED</span>
+                    </div>
+                    <div class="row g-2 text-center" style="font-size: 0.78rem;">
+                        <div class="col-4">
+                            <div class="text-muted">Simulated Latency</div>
+                            <div class="fw-bold text-white" id="q3-latency">94.0 ms</div>
+                        </div>
+                        <div class="col-4">
+                            <div class="text-muted">Jitter</div>
+                            <div class="fw-bold text-white" id="q3-jitter">18.5 ms</div>
+                        </div>
+                        <div class="col-4">
+                            <div class="text-muted">Drop Rate</div>
+                            <div class="fw-bold text-warning" id="q3-drop">4.8%</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Linux Traffic Control (tc) Generated Command Script Card -->
+<div class="card-dark">
+    <div class="card-header-dark">
+        <h5>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-info"><polyline points="4 17 10 11 4 5"></polyline><line x1="12" y1="19" x2="20" y2="19"></line></svg>
+            Linux Traffic Control (tc) Shell Script Generator
+        </h5>
+        <button class="btn btn-outline-cyan btn-sm" id="btn-copy-tc">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="me-1"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+            Copy Script
+        </button>
+    </div>
+    <div class="card-body-dark">
+        <p class="text-muted mb-2" style="font-size: 0.8rem;">
+            These exact commands configure the Hierarchical Token Bucket (HTB) qdisc, class tree, and u32 packet classifier filters in the Linux kernel network stack.
+        </p>
+        <pre class="code-preview" id="tc-script-box"># Loading Linux tc commands...</pre>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/qos.js') }}"></script>
+{% endblock %}

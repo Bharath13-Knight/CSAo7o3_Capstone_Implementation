@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Intelligent Network Traffic Management & QoS{% endblock %}</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Vis.js Network for interactive Topology -->
+    <script src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
+    <!-- Chart.js for Telemetry & Performance Graphs -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <!-- Custom Theme CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    {% block head %}{% endblock %}
+</head>
+<body>
+    <!-- Sidebar -->
+    <aside id="sidebar">
+        <div class="sidebar-brand">
+            <div class="brand-icon">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="2" y="2" width="20" height="8" rx="2" ry="2"></rect>
+                    <rect x="2" y="14" width="20" height="8" rx="2" ry="2"></rect>
+                    <line x1="6" y1="6" x2="6.01" y2="6"></line>
+                    <line x1="6" y1="18" x2="6.01" y2="18"></line>
+                </svg>
+            </div>
+            <div>
+                <div class="brand-text">NetQoS Manager</div>
+                <div class="brand-subtitle">Multi-Subnet Suite</div>
+            </div>
+        </div>
+
+        <nav class="sidebar-nav">
+            <div class="nav-category">Core Operations</div>
+            <a href="{{ url_for('page_dashboard') }}" class="sidebar-link {% if active_page == 'dashboard' %}active{% endif %}">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+                <span>Overview Dashboard</span>
+            </a>
+            <a href="{{ url_for('page_topology') }}" class="sidebar-link {% if active_page == 'topology' %}active{% endif %}">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="5" r="3"></circle><circle cx="6" cy="19" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="12" y1="8" x2="6" y2="16"></line><line x1="12" y1="8" x2="18" y2="16"></line></svg>
+                <span>Network Topology</span>
+            </a>
+            <a href="{{ url_for('page_monitoring') }}" class="sidebar-link {% if active_page == 'monitoring' %}active{% endif %}">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
+                <span>Traffic Monitoring</span>
+            </a>
+
+            <div class="nav-category mt-3">Intelligence & QoS</div>
+            <a href="{{ url_for('page_classification') }}" class="sidebar-link {% if active_page == 'classification' %}active{% endif %}">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 2 7 12 12 22 7 12 2"></polygon><polyline points="2 17 12 22 22 17"></polyline><polyline points="2 12 12 17 22 12"></polyline></svg>
+                <span>Traffic Classification</span>
+            </a>
+            <a href="{{ url_for('page_qos') }}" class="sidebar-link {% if active_page == 'qos' %}active{% endif %}">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="21" x2="4" y2="14"></line><line x1="4" y1="10" x2="4" y2="3"></line><line x1="12" y1="21" x2="12" y2="12"></line><line x1="12" y1="8" x2="12" y2="3"></line><line x1="20" y1="21" x2="20" y2="16"></line><line x1="20" y1="12" x2="20" y2="3"></line><line x1="1" y1="14" x2="7" y2="14"></line><line x1="9" y1="8" x2="15" y2="8"></line><line x1="17" y1="16" x2="23" y2="16"></line></svg>
+                <span>QoS Management</span>
+            </a>
+
+            <div class="nav-category mt-3">Analytics & Audit</div>
+            <a href="{{ url_for('page_performance') }}" class="sidebar-link {% if active_page == 'performance' %}active{% endif %}">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 20V10"></path><path d="M12 20V4"></path><path d="M6 20v-6"></path></svg>
+                <span>Performance Analysis</span>
+            </a>
+            <a href="{{ url_for('page_reports') }}" class="sidebar-link {% if active_page == 'reports' %}active{% endif %}">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                <span>Reports & CSV</span>
+            </a>
+            <a href="{{ url_for('page_settings') }}" class="sidebar-link {% if active_page == 'settings' %}active{% endif %}">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+                <span>Settings</span>
+            </a>
+        </nav>
+
+        <div class="sidebar-footer">
+            <div class="d-flex align-items-center justify-content-between">
+                <div>
+                    <span class="status-dot online"></span>
+                    <span class="text-secondary">Core Engine</span>
+                </div>
+                <span class="badge badge-sim" id="global-mode-badge">SIMULATION</span>
+            </div>
+            <div class="text-muted mt-1" style="font-size: 0.72rem;">CN Capstone Project &copy; 2026</div>
+        </div>
+    </aside>
+
+    <!-- Main Wrapper -->
+    <div id="main-wrapper">
+        <!-- Top Navigation Bar -->
+        <header class="top-navbar">
+            <div class="page-title-box">
+                <h1>{% block page_title %}Dashboard{% endblock %}</h1>
+                <span>{% block page_subtitle %}Multi-Subnet Traffic Monitoring & Quality of Service Optimizer{% endblock %}</span>
+            </div>
+
+            <div class="d-flex align-items-center gap-3">
+                <!-- QoS Status Pill -->
+                <div class="d-none d-md-flex align-items-center bg-dark px-3 py-1 rounded-pill border border-secondary" style="font-size: 0.8rem;">
+                    <span class="text-muted me-2">QoS Policy:</span>
+                    <span id="nav-qos-status" class="badge badge-low">ACTIVE</span>
+                </div>
+
+                <!-- Global Quick Action: Monitoring Toggle -->
+                <div class="btn-group btn-group-sm">
+                    <button id="nav-btn-start-monitor" class="btn btn-outline-cyan btn-sm">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" class="me-1"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                        Start Mon
+                    </button>
+                    <button id="nav-btn-stop-monitor" class="btn btn-outline-danger btn-sm">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" class="me-1"><rect x="6" y="6" width="12" height="12"></rect></svg>
+                        Stop
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content Body -->
+        <main class="main-content">
+            {% block content %}{% endblock %}
+        </main>
+    </div>
+
+    <!-- Toast Notifications Container -->
+    <div class="toast-container toast-container-custom" id="toast-area"></div>
+
+    <!-- Bootstrap 5 Bundle JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Global App JS Script -->
+    <script>
+        // Global Toast Notification Helper
+        function showToast(message, type = 'info') {
+            const toastArea = document.getElementById('toast-area');
+            const toastEl = document.createElement('div');
+            const bgClass = type === 'success' ? 'bg-success' : type === 'error' ? 'bg-danger' : 'bg-primary';
+            toastEl.className = `toast align-items-center text-white ${bgClass} border-0 show mb-2`;
+            toastEl.setAttribute('role', 'alert');
+            toastEl.innerHTML = `
+                <div class="d-flex">
+                    <div class="toast-body" style="font-size: 0.85rem;">
+                        ${message}
+                    </div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+                </div>
+            `;
+            toastArea.appendChild(toastEl);
+            setTimeout(() => {
+                toastEl.remove();
+            }, 4500);
+        }
+
+        // Global Nav Monitoring Control Listeners
+        document.getElementById('nav-btn-start-monitor')?.addEventListener('click', async () => {
+            try {
+                const res = await fetch('/api/monitoring/start', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ mode: 'SIMULATION', rate: 10 })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    showToast('Monitoring engine started (' + data.result.mode + ')', 'success');
+                }
+            } catch (err) {
+                showToast('Failed to start monitoring: ' + err, 'error');
+            }
+        });
+
+        document.getElementById('nav-btn-stop-monitor')?.addEventListener('click', async () => {
+            try {
+                const res = await fetch('/api/monitoring/stop', { method: 'POST' });
+                const data = await res.json();
+                if (data.success) {
+                    showToast('Monitoring engine stopped.', 'info');
+                }
+            } catch (err) {
+                showToast('Failed to stop monitoring: ' + err, 'error');
+            }
+        });
+    </script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>
