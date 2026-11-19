@@ -1,0 +1,14 @@
+Intelligent Multi-Subnet Network Traffic Management System
+QoS Optimization & Performance Benchmark Report
+Test ID,test-7e10e0fd
+Execution Timestamp,2026-11-19 10:26:04
+
+Scenario,Traffic Class,Throughput (Mbps),Latency (ms),Packet Loss (%),Jitter (ms),Bandwidth Util (%),Observations & Notes
+Scenario 1 (Before QoS),High Priority (VoIP & Video),7.45,136.14,14.5,25.47,7.4,Starved by aggressive bulk transfer in shared FIFO buffer
+Scenario 1 (Before QoS),Medium Priority (Web Browsing & DNS),11.77,149.33,17.38,34.06,11.8,High TCP retransmission rate due to packet drops
+Scenario 1 (Before QoS),Low Priority (FTP & Background Bulk),70.07,140.65,21.82,41.83,70.1,Greedy TCP window monopolizing link buffers
+Scenario 1 (Before QoS),Aggregate Network Total,89.29,142.04,17.9,33.79,89.3,Severe bufferbloat across all subnets
+Scenario 2 (After QoS),High Priority (VoIP & Video),24.62,12.64,0.0,1.94,24.6,Protected by strict priority queue (pfifo limit 100); 0% drop
+Scenario 2 (After QoS),Medium Priority (Web Browsing & DNS),30.51,25.23,0.29,3.64,30.5,Guaranteed 30% bandwidth allocation with Fair Queuing
+Scenario 2 (After QoS),Low Priority (FTP & Background Bulk),14.78,103.46,5.38,16.44,14.8,Rate-limited by HTB Token Bucket to 15 Mbps; bulk isolation active
+Scenario 2 (After QoS),Aggregate Network Total,69.91,47.11,1.89,7.34,69.9,Optimal fairness and delay guarantees achieved
